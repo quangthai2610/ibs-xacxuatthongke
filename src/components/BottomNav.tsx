@@ -17,7 +17,8 @@ export function BottomNav() {
   // Nếu đang ở màn hình ghi điểm (ví dụ: /game/123), có thể ẩn Bottom Nav hoặc giữ nguyên tuỳ thiết kế.
   // Ở đây chúng ta giữ nguyên cho dễ điều hướng, hoặc ẩn nếu đang trong game.
   const isGamePage = pathname?.startsWith("/game/");
-  if (isGamePage) return null;
+  const isBingoPage = pathname === "/bingo";
+  if (isGamePage || isBingoPage) return null;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200 pb-safe">

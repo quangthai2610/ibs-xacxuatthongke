@@ -127,7 +127,7 @@ export default async function Home() {
             className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 active:from-amber-700 active:to-orange-700 text-white font-semibold py-4 px-6 rounded-2xl shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2 transition-all transform active:scale-95"
           >
             <span className="text-xl">🎱</span>
-            <span>Tạo bàn Bingo</span>
+            <span>Sảnh Bingo</span>
           </Link>
         </div>
       </main>
