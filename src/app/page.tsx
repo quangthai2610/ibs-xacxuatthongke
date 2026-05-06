@@ -114,13 +114,20 @@ export default async function Home() {
           </div>
         )}
 
-        <div className="mt-12">
+        <div className="mt-12 flex flex-col gap-3 max-w-sm mx-auto w-full">
           <Link
             href="/game/new"
-            className="w-full max-w-sm mx-auto bg-sky-500 hover:bg-sky-600 active:bg-sky-700 text-white font-semibold py-4 px-6 rounded-2xl shadow-lg shadow-sky-500/30 flex items-center justify-center gap-2 transition-all transform active:scale-95"
+            className="w-full bg-sky-500 hover:bg-sky-600 active:bg-sky-700 text-white font-semibold py-4 px-6 rounded-2xl shadow-lg shadow-sky-500/30 flex items-center justify-center gap-2 transition-all transform active:scale-95"
           >
             <Plus className="w-6 h-6" />
             <span>Tạo bàn mới</span>
+          </Link>
+          <Link
+            href="/bingo"
+            className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 active:from-amber-700 active:to-orange-700 text-white font-semibold py-4 px-6 rounded-2xl shadow-lg shadow-amber-500/30 flex items-center justify-center gap-2 transition-all transform active:scale-95"
+          >
+            <span className="text-xl">🎱</span>
+            <span>Tạo bàn Bingo</span>
           </Link>
         </div>
       </main>
