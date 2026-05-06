@@ -7,7 +7,6 @@ import EndGameButton from "./EndGameButton";
 import RoundList from "./RoundList";
 import RealtimeSubscription from "@/components/RealtimeSubscription";
 
-export const runtime = "edge";
 
 export default async function GamePage({ 
   params, 

@@ -6,7 +6,6 @@ import { vi } from "date-fns/locale";
 import Image from "next/image";
 import RealtimeSubscription from "@/components/RealtimeSubscription";
 
-export const runtime = "edge";
 
 export default async function Home() {
   const activeGames = await getActiveGames();

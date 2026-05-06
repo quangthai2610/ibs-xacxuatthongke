@@ -3,7 +3,6 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, Trophy, Receipt, Home } from "lucide-react";
 
-export const runtime = "edge";
 
 export default async function ResultPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = await params;
