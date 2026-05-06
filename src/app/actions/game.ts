@@ -1,5 +1,6 @@
 "use server";
 
+export const runtime = "edge";
 import { supabase } from "@/lib/supabase";
 import { revalidatePath } from "next/cache";
 
@@ -123,6 +124,7 @@ export async function endGame(gameId: string, totalBill: number) {
   revalidatePath(`/game/${gameId}`);
   revalidatePath(`/history`);
   revalidatePath(`/leaderboard`);
+  revalidatePath(`/`);
 }
 
 export async function getFinishedGames(timeFilter: "all" | "week" | "month" = "all") {

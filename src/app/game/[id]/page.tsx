@@ -5,6 +5,8 @@ import { ChevronLeft, Info } from "lucide-react";
 import ScoreForm from "./ScoreForm";
 import EndGameButton from "./EndGameButton";
 
+export const runtime = "edge";
+
 export default async function GamePage({ 
   params, 
   searchParams 

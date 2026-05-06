@@ -5,6 +5,8 @@ import { vi } from "date-fns/locale";
 import { Calendar, ChevronRight, CheckCircle2 } from "lucide-react";
 import clsx from "clsx";
 
+export const runtime = "edge";
+
 export default async function HistoryPage({
   searchParams,
 }: {

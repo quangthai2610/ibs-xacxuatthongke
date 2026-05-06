@@ -5,6 +5,8 @@ import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import Image from "next/image";
 
+export const runtime = "edge";
+
 export default async function Home() {
   const activeGames = await getActiveGames();
 

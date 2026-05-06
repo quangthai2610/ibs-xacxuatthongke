@@ -4,6 +4,8 @@ import { Trophy, TrendingUp, Medal } from "lucide-react";
 import clsx from "clsx";
 import LeaderboardChart from "./LeaderboardChart";
 
+export const runtime = "edge";
+
 export default async function LeaderboardPage({
   searchParams,
 }: {
