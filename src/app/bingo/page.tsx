@@ -40,7 +40,8 @@ export default function BingoPage() {
   const resultRef = useRef<number | null>(null);
   const drawnRef = useRef<number[]>([]);
 
-  const SPIN_DURATION = 2000;
+  const SPIN_DURATION = interval <= 2 ? 800 : 2000;
+  const TRANSITION_DURATION = interval <= 2 ? 200 : 600;
 
   useEffect(() => {
     drawnRef.current = drawnNumbers;
@@ -103,22 +104,28 @@ export default function BingoPage() {
 
   useEffect(() => {
     if (isAutoMode && !isSpinning && !isTransitioning && !isAllDrawn) {
-      setCountdown(interval);
+      // Calculate idle time so total interval is strictly equal to the setting
+      // Total Interval = idleTime + TRANSITION_DURATION + SPIN_DURATION
+      const totalAnimation = SPIN_DURATION + TRANSITION_DURATION;
+      const idleTime = Math.max(0, interval * 1000 - totalAnimation);
+
+      setCountdown(Math.ceil(idleTime / 1000));
       const countdownTimer = setInterval(() => {
         setCountdown((prev) => {
           if (prev === null || prev <= 1) return null;
           return prev - 1;
         });
       }, 1000);
+
       autoTimerRef.current = setTimeout(() => {
         setCountdown(null);
-        // Chuyển xanh → đỏ trước khi quay
         setIsTransitioning(true);
         setTimeout(() => {
           setIsTransitioning(false);
           spinOnce();
-        }, 600);
-      }, interval * 1000);
+        }, TRANSITION_DURATION);
+      }, idleTime);
+
       return () => { clearInterval(countdownTimer); if (autoTimerRef.current) clearTimeout(autoTimerRef.current); };
     } else {
       setCountdown(null);
@@ -246,7 +253,7 @@ export default function BingoPage() {
             {/* Orb */}
             <div className="relative mb-5">
               <div
-                className={`w-36 h-36 lg:w-48 lg:h-48 rounded-full flex items-center justify-center relative ${isSpinning
+                className={`w-32 h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 rounded-full flex items-center justify-center relative ${isSpinning
                     ? "bg-gradient-to-br from-amber-400 via-orange-500 to-red-500 shadow-[0_0_80px_rgba(251,146,60,0.5)]"
                     : isTransitioning
                       ? "bg-gradient-to-br from-red-500 to-rose-600 shadow-[0_0_50px_rgba(239,68,68,0.4)]"
@@ -258,7 +265,7 @@ export default function BingoPage() {
                 <div className="absolute top-3 left-5 w-10 h-6 lg:w-14 lg:h-8 bg-white/20 rounded-full blur-md" />
                 <div className="absolute top-5 left-8 w-3 h-2 lg:w-5 lg:h-3 bg-white/30 rounded-full blur-sm" />
                 <span
-                  className={`font-black tabular-nums relative z-10 ${isSpinning ? "animate-pulse" : ""} ${(displayNumber ?? currentNumber ?? 0) >= 100 ? "text-4xl lg:text-6xl" : "text-6xl lg:text-8xl"
+                  className={`font-black tabular-nums relative z-10 ${isSpinning ? "animate-pulse" : ""} ${(displayNumber ?? currentNumber ?? 0) >= 100 ? "text-4xl md:text-5xl lg:text-6xl" : "text-5xl md:text-7xl lg:text-8xl"
                     }`}
                   style={{ textShadow: "0 4px 16px rgba(0,0,0,0.4)" }}
                 >
@@ -291,11 +298,11 @@ export default function BingoPage() {
 
             {/* History ribbon */}
             {drawnNumbers.length > 0 && (
-              <div className="flex flex-wrap justify-center gap-1.5 px-2 mb-2 max-w-xs lg:max-w-lg">
+              <div className="flex items-center gap-2 overflow-x-auto px-2 mb-2 pb-2 max-w-full [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
                 {drawnNumbers.slice(-20).reverse().map((n, i) => (
                   <div
                     key={`h-${n}-${i}`}
-                    className={`w-8 h-8 lg:w-9 lg:h-9 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-500 ${
+                    className={`w-8 h-8 lg:w-9 lg:h-9 shrink-0 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-500 ${
                       i === 0 && !isTransitioning && !isSpinning
                         ? "bg-gradient-to-br from-emerald-400 to-emerald-600 text-white scale-110 shadow-[0_0_16px_rgba(52,211,153,0.5)] ring-2 ring-emerald-300/50"
                         : "bg-red-500 text-white"
@@ -311,9 +318,9 @@ export default function BingoPage() {
           {/* ── Bottom Section: Number Grid ── */}
           <div className="px-3 lg:px-8 pb-32 lg:pb-8">
             {/* Mobile grid */}
-            <div className="lg:hidden">
+            <div className="lg:hidden w-full max-w-sm mx-auto">
               <div
-                className="grid gap-[2px]"
+                className="grid gap-1"
                 style={{ gridTemplateColumns: `repeat(${gridCols}, minmax(0, 1fr))` }}
               >
                 {allNumbers.map((n) => {
