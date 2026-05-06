@@ -5,6 +5,7 @@ import { ChevronLeft, Info } from "lucide-react";
 import ScoreForm from "./ScoreForm";
 import EndGameButton from "./EndGameButton";
 import RoundList from "./RoundList";
+import RealtimeSubscription from "@/components/RealtimeSubscription";
 
 export const runtime = "edge";
 
@@ -53,6 +54,7 @@ export default async function GamePage({
 
   return (
     <div className="flex flex-col h-full bg-slate-50">
+      <RealtimeSubscription table="games" filter={`id=eq.${gameId}`} />
       <header className="px-4 py-4 bg-white border-b border-slate-200 flex items-center justify-between shadow-sm sticky top-0 z-20">
         <div className="flex items-center">
           <Link href={game.status === "finished" ? `/game/${gameId}/result` : "/"} className="p-2 -ml-2 text-slate-500 hover:text-slate-900">

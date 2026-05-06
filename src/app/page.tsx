@@ -4,6 +4,7 @@ import { getActiveGames } from "./actions/game";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import Image from "next/image";
+import RealtimeSubscription from "@/components/RealtimeSubscription";
 
 export const runtime = "edge";
 
@@ -12,6 +13,7 @@ export default async function Home() {
 
   return (
     <div className="flex flex-col h-full bg-slate-50">
+      <RealtimeSubscription table="games" />
       <header className="px-6 pt-12 pb-6 bg-white border-b border-slate-200 shadow-sm z-10 sticky top-0 flex flex-col items-center text-center">
         <Image src="/icon-192.png" alt="Xác Xuất Thống Kê Logo" width={64} height={64} className="mb-3 rounded-2xl shadow-md" />
         <h1 className="text-3xl font-extrabold bg-gradient-to-r from-sky-500 to-indigo-500 bg-clip-text text-transparent">
