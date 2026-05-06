@@ -107,8 +107,15 @@ export default function ScoreForm({
                     <input
                       type="number"
                       inputMode="numeric"
+                      enterKeyHint="done"
                       value={scores[p.id] || ""}
                       onChange={(e) => handleChange(p.id, e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleSubmit(e as any);
+                        }
+                      }}
                       className="w-full text-center bg-white border border-slate-200 rounded-lg py-2.5 text-lg font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500/50 transition-all shadow-sm"
                       placeholder="0"
                     />

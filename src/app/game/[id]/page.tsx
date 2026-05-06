@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ChevronLeft, Info } from "lucide-react";
 import ScoreForm from "./ScoreForm";
 import EndGameButton from "./EndGameButton";
+import RoundList from "./RoundList";
 
 export const runtime = "edge";
 
@@ -85,40 +86,17 @@ export default async function GamePage({
         </div>
 
         {/* Rounds List */}
-        <div className="divide-y divide-slate-100 bg-white">
-          {rounds.map((round) => (
-            <div key={round.id} className="grid grid-cols-5 py-3 items-center hover:bg-slate-50 transition-colors">
-              <div className="text-center font-medium text-xs text-slate-500 col-span-1 border-r border-slate-100">
-                {round.round_number}
-              </div>
-              {players.map((p) => {
-                const score = round.scores[p.id] || 0;
-                return (
-                  <div
-                    key={p.id}
-                    className={`text-center font-semibold text-sm ${
-                      score > 0 ? "text-emerald-600" : score < 0 ? "text-red-600" : "text-slate-400"
-                    }`}
-                  >
-                    {score > 0 ? `+${score}` : score}
-                  </div>
-                );
-              })}
-            </div>
-          ))}
-
-          {rounds.length === 0 && (
-            <div className="py-12 flex flex-col items-center justify-center text-slate-400">
-              <Info className="w-8 h-8 mb-2 opacity-50" />
-              <p className="text-sm">Chưa có ván nào được ghi</p>
-            </div>
-          )}
-        </div>
+        <RoundList 
+          gameId={gameId} 
+          rounds={rounds} 
+          players={players} 
+          isFinished={game.status === "finished"} 
+        />
       </main>
 
       {/* Fixed Bottom Form (chỉ hiện khi game chưa kết thúc) */}
       {game.status !== "finished" && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 pb-[env(safe-area-inset-bottom)] shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.1)] z-20 w-full max-w-md mx-auto">
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 pb-[calc(max(1.5rem,env(safe-area-inset-bottom)))] shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.1)] z-20 w-full max-w-md mx-auto">
           <ScoreForm
             gameId={gameId}
             players={players}

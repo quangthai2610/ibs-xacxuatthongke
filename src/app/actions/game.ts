@@ -1,6 +1,4 @@
 "use server";
-
-export const runtime = "edge";
 import { supabase } from "@/lib/supabase";
 import { revalidatePath } from "next/cache";
 
@@ -71,6 +69,59 @@ export async function addRound(gameId: string, roundNumber: number, scores: Reco
     .eq("id", gameId);
 
   if (updateError) throw new Error("Lỗi lưu điểm ván");
+  revalidatePath(`/game/${gameId}`);
+}
+
+export async function updateRound(gameId: string, roundId: string, newScores: Record<string, number>) {
+  const { data: game, error: fetchError } = await supabase
+    .from("games")
+    .select("rounds")
+    .eq("id", gameId)
+    .single();
+
+  if (fetchError || !game) throw new Error("Lỗi tìm game");
+
+  const currentRounds = game.rounds || [];
+  const newRounds = currentRounds.map((r: any) => 
+    r.id === roundId ? { ...r, scores: newScores } : r
+  );
+
+  const { error: updateError } = await supabase
+    .from("games")
+    .update({ rounds: newRounds })
+    .eq("id", gameId);
+
+  if (updateError) throw new Error("Lỗi cập nhật điểm");
+  revalidatePath(`/game/${gameId}`);
+}
+
+export async function deleteRound(gameId: string, roundId: string) {
+  const { data: game, error: fetchError } = await supabase
+    .from("games")
+    .select("rounds")
+    .eq("id", gameId)
+    .single();
+
+  if (fetchError || !game) throw new Error("Lỗi tìm game");
+
+  let currentRounds = game.rounds || [];
+  
+  // Lọc bỏ round cần xóa
+  currentRounds = currentRounds.filter((r: any) => r.id !== roundId);
+  
+  // Sắp xếp lại và đánh lại số thứ tự
+  currentRounds = currentRounds.sort((a: any, b: any) => a.round_number - b.round_number);
+  const newRounds = currentRounds.map((r: any, index: number) => ({
+    ...r,
+    round_number: index + 1
+  }));
+
+  const { error: updateError } = await supabase
+    .from("games")
+    .update({ rounds: newRounds })
+    .eq("id", gameId);
+
+  if (updateError) throw new Error("Lỗi xóa ván");
   revalidatePath(`/game/${gameId}`);
 }
 
