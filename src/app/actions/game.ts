@@ -262,3 +262,45 @@ export async function getRankStats(timePeriod: "all" | "week" | "month" = "all")
     return b.rank4 - a.rank4;
   });
 }
+
+export async function updateBill(gameId: string, totalBill: number) {
+  if (totalBill <= 0) throw new Error("Số tiền phải lớn hơn 0");
+
+  // 1. Lấy game và players
+  const { data: game } = await supabase
+    .from("games")
+    .select("status, players(id, final_rank)")
+    .eq("id", gameId)
+    .single();
+
+  if (!game) throw new Error("Không tìm thấy game");
+  if (game.status !== "finished") throw new Error("Game chưa kết thúc");
+
+  // 2. Tìm người hạng 3 và hạng 4
+  const rank3Player = game.players.find((p: any) => p.final_rank === 3);
+  const rank4Player = game.players.find((p: any) => p.final_rank === 4);
+
+  if (!rank3Player || !rank4Player) throw new Error("Không tìm thấy người chơi hạng 3, 4");
+
+  const rank3Debt = Math.round(totalBill / 2);
+  const rank4Debt = totalBill - rank3Debt;
+
+  // 3. Cập nhật tổng bill
+  await supabase
+    .from("games")
+    .update({ total_bill_amount: totalBill })
+    .eq("id", gameId);
+
+  // 4. Xóa nợ cũ (nếu có) và tạo mới
+  await supabase.from("debts").delete().eq("game_id", gameId);
+
+  await supabase.from("debts").insert([
+    { game_id: gameId, player_id: rank3Player.id, amount: rank3Debt },
+    { game_id: gameId, player_id: rank4Player.id, amount: rank4Debt },
+  ]);
+
+  revalidatePath(`/game/${gameId}`);
+  revalidatePath(`/game/${gameId}/result`);
+  revalidatePath(`/history`);
+  revalidatePath(`/leaderboard`);
+}

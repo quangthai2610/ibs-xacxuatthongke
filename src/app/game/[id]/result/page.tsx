@@ -2,6 +2,7 @@ import { supabase } from "@/lib/supabase";
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, Trophy, Receipt, Home } from "lucide-react";
+import UpdateBillButton from "./UpdateBillButton";
 
 
 export default async function ResultPage({ params }: { params: Promise<{ id: string }> }) {
@@ -32,6 +33,8 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
     });
   });
 
+  const hasBill = Number(game.total_bill_amount) > 0;
+
   return (
     <div className="flex flex-col h-full bg-slate-50">
       <header className="px-4 py-4 bg-white border-b border-slate-200 flex items-center shadow-sm z-20">
@@ -43,29 +46,42 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
 
       <main className="flex-1 p-6 overflow-y-auto pb-24">
         {/* Banner Tổng kết */}
-        <div className="bg-gradient-to-br from-sky-500 to-indigo-600 rounded-3xl p-6 text-white shadow-lg mb-8 relative overflow-hidden">
-          <div className="absolute -right-6 -top-6 text-white/10">
-            <Trophy className="w-32 h-32" />
-          </div>
-          <div className="relative z-10">
-            <h2 className="text-sky-100 font-medium mb-1">Tổng hóa đơn</h2>
-            <div className="text-4xl font-black tracking-tight mb-4">
-              {Number(game.total_bill_amount).toLocaleString("vi-VN")} đ
+        {hasBill ? (
+          <div className="bg-gradient-to-br from-sky-500 to-indigo-600 rounded-3xl p-6 text-white shadow-lg mb-8 relative overflow-hidden">
+            <div className="absolute -right-6 -top-6 text-white/10">
+              <Trophy className="w-32 h-32" />
             </div>
+            <div className="relative z-10">
+              <h2 className="text-sky-100 font-medium mb-1">Tổng hóa đơn</h2>
+              <div className="text-4xl font-black tracking-tight mb-4">
+                {Number(game.total_bill_amount).toLocaleString("vi-VN")} đ
+              </div>
 
-            <div className="flex flex-col gap-2">
-              {game.debts.map((debt: any) => {
-                const player = game.players.find((p: any) => p.id === debt.player_id);
-                return (
-                  <div key={debt.id} className="flex justify-between items-center bg-white/20 px-4 py-2 rounded-xl backdrop-blur-md">
-                    <span className="font-semibold">{player?.name} trả:</span>
-                    <span className="font-bold">{Number(debt.amount).toLocaleString("vi-VN")} đ</span>
-                  </div>
-                );
-              })}
+              <div className="flex flex-col gap-2">
+                {game.debts.map((debt: any) => {
+                  const player = game.players.find((p: any) => p.id === debt.player_id);
+                  return (
+                    <div key={debt.id} className="flex justify-between items-center bg-white/20 px-4 py-2 rounded-xl backdrop-blur-md">
+                      <span className="font-semibold">{player?.name} trả:</span>
+                      <span className="font-bold">{Number(debt.amount).toLocaleString("vi-VN")} đ</span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
-        </div>
+        ) : (
+          <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-3xl p-6 shadow-sm border border-amber-200 mb-8">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-14 h-14 bg-amber-100 rounded-full flex items-center justify-center mb-3">
+                <Receipt className="w-7 h-7 text-amber-600" />
+              </div>
+              <h2 className="font-bold text-slate-800 text-lg mb-1">Chưa có hóa đơn</h2>
+              <p className="text-sm text-slate-500 mb-4">Bổ sung hóa đơn để tính tiền cho hạng 3 và hạng 4</p>
+              <UpdateBillButton gameId={gameId} />
+            </div>
+          </div>
+        )}
 
         {/* Bảng xếp hạng */}
         <h3 className="font-bold text-slate-800 text-lg mb-4 ml-1">Bảng xếp hạng</h3>
@@ -117,3 +133,4 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
     </div>
   );
 }
+
