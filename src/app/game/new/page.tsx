@@ -6,6 +6,8 @@ import { createGame } from "@/app/actions/game";
 import { ChevronLeft, Users, Loader2 } from "lucide-react";
 import Link from "next/link";
 
+export const runtime = "edge";
+
 export default function NewGamePage() {
   const router = useRouter();
   const [players, setPlayers] = useState(["", "", "", ""]);
