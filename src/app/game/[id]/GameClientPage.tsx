@@ -192,9 +192,6 @@ export default function GameClientPage({
                     <span className="font-bold text-[11px] text-slate-800 line-clamp-1 w-full">
                       {p.name}
                     </span>
-                    <div className={`text-[10px] font-extrabold mt-0.5 ${totalScores[p.id] > 0 ? "text-emerald-600" : totalScores[p.id] < 0 ? "text-red-600" : "text-slate-400"}`}>
-                      {totalScores[p.id] > 0 ? "+" : ""}{totalScores[p.id]}
-                    </div>
                   </div>
                 </div>
               ))}
