@@ -69,8 +69,7 @@ export default function ScoreForm({
   };
 
   const handleChange = (pid: string, val: string) => {
-    // Cho phép: số, dấu trừ ở đầu, và xóa ký tự
-    // Regex: optional dấu trừ + một hoặc nhiều chữ số
+    // Cho phép: số, dấu trừ ở đầu, và xóa ký tự không hợp lệ
     const sanitized = val.replace(/[^\d-]/g, "");
     
     // Đảm bảo dấu trừ chỉ ở đầu
@@ -116,7 +115,6 @@ export default function ScoreForm({
                     </label>
                     <input
                       type="text"
-                      inputMode="decimal"
                       enterKeyHint="done"
                       value={scores[p.id] || ""}
                       onChange={(e) => handleChange(p.id, e.target.value)}
