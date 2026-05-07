@@ -22,8 +22,8 @@ export default async function HistoryPage({
   ];
 
   return (
-    <div className="flex flex-col h-full bg-slate-50">
-      <header className="px-6 pt-12 pb-4 bg-white border-b border-slate-200 sticky top-0 z-10">
+    <div className="flex flex-col h-dvh bg-slate-50">
+      <header className="px-6 pt-12 pb-4 bg-white border-b border-slate-200 z-10 shrink-0">
         <h1 className="text-2xl font-bold text-slate-900 mb-4">Lịch sử</h1>
         
         {/* Tabs */}
@@ -46,7 +46,7 @@ export default async function HistoryPage({
         </div>
       </header>
 
-      <main className="flex-1 p-6 overflow-y-auto pb-24">
+      <main className="flex-1 p-6 overflow-y-auto pb-24 min-h-0">
         {games.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-40 text-slate-400">
             <Calendar className="w-10 h-10 mb-2 opacity-30" />
@@ -66,7 +66,7 @@ export default async function HistoryPage({
                 >
                   <div className="flex justify-between items-center border-b border-slate-50 pb-3 mb-3">
                     <span className="text-xs font-semibold text-slate-400">
-                      {format(dateObj, "dd/MM/yyyy • HH:mm", { locale: vi })}
+                      {format(new Date(dateObj.getTime() + 7 * 60 * 60 * 1000), "dd/MM/yyyy • HH:mm", { locale: vi })}
                     </span>
                     <span className="bg-slate-100 text-slate-600 px-2 py-1 rounded-md text-[10px] font-bold">
                       Bill: {Number(game.total_bill_amount || 0).toLocaleString("vi-VN")}đ

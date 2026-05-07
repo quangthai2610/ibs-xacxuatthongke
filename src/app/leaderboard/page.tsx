@@ -24,8 +24,8 @@ export default async function LeaderboardPage({
   ];
 
   return (
-    <div className="flex flex-col h-full bg-slate-50">
-      <header className="px-6 pt-12 pb-4 bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
+    <div className="flex flex-col h-dvh bg-slate-50">
+      <header className="px-6 pt-12 pb-4 bg-white border-b border-slate-200 z-10 shadow-sm shrink-0">
         <div className="flex items-center gap-2 mb-4">
           <h1 className="text-2xl font-bold text-slate-900">Bảng xếp hạng</h1>
           <Trophy className="w-6 h-6 text-yellow-500" />
@@ -73,7 +73,7 @@ export default async function LeaderboardPage({
         </div>
       </header>
 
-      <main className="flex-1 p-6 overflow-y-auto pb-24">
+      <main className="flex-1 p-6 overflow-y-auto pb-24 min-h-0">
         {type === "debt" ? (
           leaderboardData.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-40 text-slate-400">

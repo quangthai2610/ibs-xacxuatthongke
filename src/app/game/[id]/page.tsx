@@ -1,11 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { notFound, redirect } from "next/navigation";
-import Link from "next/link";
-import { ChevronLeft, Info } from "lucide-react";
-import ScoreForm from "./ScoreForm";
-import EndGameButton from "./EndGameButton";
-import RoundList from "./RoundList";
 import RealtimeSubscription from "@/components/RealtimeSubscription";
+import GameClientPage from "./GameClientPage";
 
 
 export default async function GamePage({ 
@@ -38,8 +34,8 @@ export default async function GamePage({
     (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
   );
 
-  // Sắp xếp rounds theo round_number
-  const rounds = [...(game.rounds || [])].sort((a, b) => a.round_number - b.round_number);
+  // Sắp xếp rounds theo round_number (mới nhất lên trên)
+  const rounds = [...(game.rounds || [])].sort((a, b) => b.round_number - a.round_number);
 
   // Tính tổng điểm hiện tại
   const totalScores: Record<string, number> = {};
@@ -51,60 +47,21 @@ export default async function GamePage({
     });
   });
 
+  const hasPassword = !!game.password;
+  const isFinished = game.status === "finished";
+
   return (
-    <div className="flex flex-col h-full bg-slate-50">
+    <>
       <RealtimeSubscription table="games" filter={`id=eq.${gameId}`} />
-      <header className="px-4 py-4 bg-white border-b border-slate-200 flex items-center justify-between shadow-sm sticky top-0 z-20">
-        <div className="flex items-center">
-          <Link href={game.status === "finished" ? `/game/${gameId}/result` : "/"} className="p-2 -ml-2 text-slate-500 hover:text-slate-900">
-            <ChevronLeft className="w-6 h-6" />
-          </Link>
-          <h1 className="text-lg font-bold text-slate-900 ml-1">Bảng Điểm</h1>
-        </div>
-        {game.status === "finished" ? (
-          <Link href={`/game/${gameId}/result`} className="text-xs font-bold text-sky-600 bg-sky-50 px-3 py-1.5 rounded-full hover:bg-sky-100 transition-colors">
-            Xem kết quả
-          </Link>
-        ) : (
-          <EndGameButton gameId={gameId} />
-        )}
-      </header>
-
-      <main className="flex-1 overflow-y-auto pb-[200px]">
-        {/* Table Header */}
-        <div className="sticky top-0 bg-slate-100 border-b border-slate-200 grid grid-cols-5 py-3 shadow-sm z-10">
-          <div className="text-center font-semibold text-[10px] text-slate-500 uppercase col-span-1 border-r border-slate-200 flex flex-col items-center justify-center">
-            Ván
-          </div>
-          {players.map((p) => (
-            <div key={p.id} className="text-center font-bold text-xs text-slate-800 line-clamp-1 px-1">
-              {p.name}
-              <div className={`text-[10px] mt-1 ${totalScores[p.id] > 0 ? "text-emerald-600" : totalScores[p.id] < 0 ? "text-red-600" : "text-slate-500"}`}>
-                {totalScores[p.id] > 0 ? "+" : ""}{totalScores[p.id]}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Rounds List */}
-        <RoundList 
-          gameId={gameId} 
-          rounds={rounds} 
-          players={players} 
-          isFinished={game.status === "finished"} 
-        />
-      </main>
-
-      {/* Fixed Bottom Form (chỉ hiện khi game chưa kết thúc) */}
-      {game.status !== "finished" && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 pb-[calc(max(1.5rem,env(safe-area-inset-bottom)))] shadow-[0_-10px_20px_-10px_rgba(0,0,0,0.1)] z-20 w-full max-w-md mx-auto">
-          <ScoreForm
-            gameId={gameId}
-            players={players}
-            nextRoundNumber={rounds.length > 0 ? rounds[rounds.length - 1].round_number + 1 : 1}
-          />
-        </div>
-      )}
-    </div>
+      <GameClientPage
+        gameId={gameId}
+        players={players}
+        rounds={rounds}
+        totalScores={totalScores}
+        isFinished={isFinished}
+        hasPassword={hasPassword}
+        nextRoundNumber={rounds.length > 0 ? rounds[0].round_number + 1 : 1}
+      />
+    </>
   );
 }

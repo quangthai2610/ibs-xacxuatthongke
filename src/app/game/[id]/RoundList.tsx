@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Info, Trash2, Edit2, Loader2, X, Check } from "lucide-react";
 import { deleteRound, updateRound } from "@/app/actions/game";
+import ScoreKeypad from "./ScoreKeypad";
 
 interface Player {
   id: string;
@@ -58,10 +59,6 @@ export default function RoundList({
     setError("");
   };
 
-  const handleEditChange = (pid: string, val: string) => {
-    setEditScores((prev) => ({ ...prev, [pid]: val }));
-  };
-
   const handleSaveEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingRound) return;
@@ -69,11 +66,12 @@ export default function RoundList({
 
     const parsedScores: Record<string, number> = {};
     for (const p of players) {
-      if (editScores[p.id] === undefined || editScores[p.id] === "") {
-        setError("Vui lòng nhập điểm cho tất cả người chơi (mặc định là 0)");
-        return;
+      const scoreStr = editScores[p.id];
+      if (scoreStr === undefined || scoreStr === "" || scoreStr === "-") {
+        parsedScores[p.id] = 0;
+        continue;
       }
-      const val = parseInt(editScores[p.id], 10);
+      const val = parseInt(scoreStr, 10);
       if (isNaN(val)) {
         setError("Điểm phải là số");
         return;
@@ -103,20 +101,18 @@ export default function RoundList({
 
   return (
     <>
-      <div className="divide-y divide-slate-100 bg-white">
-        {rounds.map((round) => (
-          <div key={round.id} className="relative overflow-hidden group">
-            {/* Vùng Swipe to Delete (chỉ bật khi chưa kết thúc) */}
+      <div className="divide-y divide-slate-100">
+        {rounds.map((round, index) => (
+          <div key={round.id} className={`relative overflow-hidden group ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'}`}>
+            {/* Vùng Swipe to Edit/Delete (chỉ bật khi chưa kết thúc) */}
             <div className={`flex w-full overflow-x-auto snap-x snap-mandatory hide-scrollbar ${isFinished ? '' : 'touch-pan-x'}`}>
               
-              {/* Nội dung chính của Round (Vuốt sang trái để lộ nút xoá) */}
+              {/* Nội dung chính của Round */}
               <div 
-                className="w-full shrink-0 snap-center grid grid-cols-5 py-3 items-center hover:bg-slate-50 transition-colors cursor-pointer"
-                onClick={() => openEditModal(round)}
+                className="w-full shrink-0 snap-center grid grid-cols-5 py-3 items-center"
               >
                 <div className="text-center font-medium text-xs text-slate-500 col-span-1 border-r border-slate-100 flex items-center justify-center">
-                  <span className="mr-1">{round.round_number}</span>
-                  {!isFinished && <Edit2 className="w-3 h-3 opacity-30" />}
+                  <span>{round.round_number}</span>
                 </div>
                 {players.map((p) => {
                   const score = round.scores[p.id] || 0;
@@ -133,18 +129,26 @@ export default function RoundList({
                 })}
               </div>
 
-              {/* Nút Xóa hiện ra khi vuốt sang trái */}
+              {/* Nút Edit + Xóa hiện ra khi vuốt sang trái */}
               {!isFinished && (
-                <div 
-                  className="w-20 shrink-0 snap-center bg-red-500 text-white flex items-center justify-center cursor-pointer active:bg-red-600"
-                  onClick={() => handleDelete(round.id)}
-                >
-                  {deletingId === round.id ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <Trash2 className="w-5 h-5" />
-                  )}
-                </div>
+                <>
+                  <div 
+                    className="w-20 shrink-0 snap-center bg-amber-500 text-white flex items-center justify-center cursor-pointer active:bg-amber-600"
+                    onClick={() => openEditModal(round)}
+                  >
+                    <Edit2 className="w-5 h-5" />
+                  </div>
+                  <div 
+                    className="w-20 shrink-0 snap-center bg-red-500 text-white flex items-center justify-center cursor-pointer active:bg-red-600"
+                    onClick={() => handleDelete(round.id)}
+                  >
+                    {deletingId === round.id ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-5 h-5" />
+                    )}
+                  </div>
+                </>
               )}
             </div>
           </div>
@@ -153,9 +157,9 @@ export default function RoundList({
 
       {/* Popup Edit Round */}
       {editingRound && (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-sm sm:p-4">
-          <div className="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl p-6 shadow-2xl animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-200">
-            <div className="flex justify-between items-center mb-6">
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-slate-900/60 backdrop-blur-sm">
+          <div className="bg-white w-full max-w-md rounded-t-3xl p-5 pb-[calc(1rem+env(safe-area-inset-bottom))] shadow-2xl animate-in slide-in-from-bottom-full duration-200">
+            <div className="flex justify-between items-center mb-4">
               <h2 className="text-lg font-bold text-slate-800">
                 Sửa điểm ván {editingRound.round_number}
               </h2>
@@ -168,39 +172,20 @@ export default function RoundList({
             </div>
 
             <form onSubmit={handleSaveEdit}>
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                {players.map((p) => (
-                  <div key={p.id} className="flex flex-col bg-slate-50 p-3 rounded-xl border border-slate-100">
-                    <label className="text-xs font-bold text-slate-600 truncate mb-2">
-                      {p.name}
-                    </label>
-                    <input
-                      type="number"
-                      inputMode="numeric"
-                      enterKeyHint="done"
-                      value={editScores[p.id] || ""}
-                      onChange={(e) => handleEditChange(p.id, e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          handleSaveEdit(e as any);
-                        }
-                      }}
-                      className="w-full text-center bg-white border border-slate-200 rounded-lg py-2.5 text-lg font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500/50 transition-all shadow-sm"
-                      placeholder="0"
-                    />
-                  </div>
-                ))}
-              </div>
+              <ScoreKeypad
+                players={players}
+                scores={editScores}
+                onScoresChange={setEditScores}
+              />
 
-              {error && <p className="text-red-500 text-sm mb-4 font-medium px-1">{error}</p>}
+              {error && <p className="text-red-500 text-sm mt-3 font-medium px-1">{error}</p>}
 
               <button
                 type="submit"
                 disabled={isSaving}
-                className="w-full bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 disabled:bg-slate-300 text-white font-bold py-4 px-6 rounded-xl shadow-md flex items-center justify-center gap-2 transition-all"
+                className="w-full mt-4 bg-emerald-500 hover:bg-emerald-600 active:bg-emerald-700 disabled:bg-slate-300 text-white font-bold py-3.5 px-6 rounded-xl shadow-md flex items-center justify-center gap-2 transition-all"
               >
-                {isSaving ? <Loader2 className="w-6 h-6 animate-spin" /> : <Check className="w-6 h-6" />}
+                {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Check className="w-5 h-5" />}
                 <span>Cập nhật</span>
               </button>
             </form>

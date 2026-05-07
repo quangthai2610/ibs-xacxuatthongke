@@ -2,17 +2,25 @@
 import { supabase } from "@/lib/supabase";
 import { revalidatePath } from "next/cache";
 
-export async function createGame(playerNames: string[]) {
+export async function createGame(playerNames: string[], password?: string) {
   if (playerNames.length !== 4) throw new Error("Cần đúng 4 người chơi");
 
-  // Tạo game mới
+  // Tạo game mới (kèm password nếu có)
+  const insertData: any = { status: "active" };
+  if (password && password.trim() !== "") {
+    insertData.password = password.trim();
+  }
+
   const { data: game, error: gameError } = await supabase
     .from("games")
-    .insert([{ status: "active" }])
+    .insert([insertData])
     .select()
     .single();
 
-  if (gameError || !game) throw new Error("Lỗi tạo game");
+  if (gameError || !game) {
+    console.error("Supabase createGame error:", gameError);
+    throw new Error("Lỗi tạo game");
+  }
 
   // Tạo 4 players
   const playersToInsert = playerNames.map((name) => ({
@@ -263,6 +271,36 @@ export async function getRankStats(timePeriod: "all" | "week" | "month" = "all")
   });
 }
 
+export async function verifyGamePassword(gameId: string, password: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("games")
+    .select("password")
+    .eq("id", gameId)
+    .single();
+
+  if (error || !data) return false;
+  
+  // Nếu game không có password, ai cũng là host
+  if (!data.password) return true;
+  
+  return data.password === password;
+}
+
+export async function getAllPlayerNames(): Promise<string[]> {
+  const { data, error } = await supabase
+    .from("players")
+    .select("name");
+
+  if (error) {
+    console.error("Lỗi lấy danh sách tên:", error);
+    return [];
+  }
+
+  // Lấy unique names, sắp xếp theo alphabet
+  const uniqueNames = [...new Set((data || []).map((p: any) => p.name))].sort();
+  return uniqueNames;
+}
+
 export async function updateBill(gameId: string, totalBill: number) {
   if (totalBill <= 0) throw new Error("Số tiền phải lớn hơn 0");
 
@@ -303,4 +341,17 @@ export async function updateBill(gameId: string, totalBill: number) {
   revalidatePath(`/game/${gameId}/result`);
   revalidatePath(`/history`);
   revalidatePath(`/leaderboard`);
+}
+
+export async function updatePlayerName(gameId: string, playerId: string, newName: string) {
+  if (!newName.trim()) throw new Error("Tên không được để trống");
+
+  const { error } = await supabase
+    .from("players")
+    .update({ name: newName.trim() })
+    .eq("id", playerId)
+    .eq("game_id", gameId);
+
+  if (error) throw new Error("Lỗi đổi tên người chơi");
+  revalidatePath(`/game/${gameId}`);
 }
