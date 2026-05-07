@@ -69,14 +69,24 @@ export default function ScoreForm({
   };
 
   const handleChange = (pid: string, val: string) => {
-    setScores((prev) => ({ ...prev, [pid]: val }));
+    // Cho phép: số, dấu trừ ở đầu, và xóa ký tự
+    // Regex: optional dấu trừ + một hoặc nhiều chữ số
+    const sanitized = val.replace(/[^\d-]/g, "");
+    
+    // Đảm bảo dấu trừ chỉ ở đầu
+    if (sanitized.includes("-")) {
+      const withoutMinus = sanitized.replace(/-/g, "");
+      setScores((prev) => ({ ...prev, [pid]: "-" + withoutMinus }));
+    } else {
+      setScores((prev) => ({ ...prev, [pid]: sanitized }));
+    }
   };
 
   return (
     <>
       <button
         onClick={openModal}
-        className="w-full bg-slate-900 hover:bg-slate-800 active:bg-slate-950 text-white font-semibold py-4 px-6 rounded-2xl shadow-lg flex items-center justify-center gap-2 transition-all transform active:scale-95"
+        className="w-full bg-slate-900 hover:bg-slate-800 active:bg-slate-950 text-white font-semibold py-4 px-6 rounded-2xl shadow-lg flex items-center justify-center gap-2 transition-all transform a[...]
       >
         <Plus className="w-6 h-6" />
         <span>Thêm ván {nextRoundNumber}</span>
@@ -93,7 +103,7 @@ export default function ScoreForm({
                 onClick={() => setIsOpen(false)}
                 className="text-slate-400 hover:text-slate-600 bg-slate-100 rounded-full p-1"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path [...]
               </button>
             </div>
 
@@ -106,7 +116,7 @@ export default function ScoreForm({
                     </label>
                     <input
                       type="text"
-                      inputMode="numeric"
+                      inputMode="decimal"
                       enterKeyHint="done"
                       value={scores[p.id] || ""}
                       onChange={(e) => handleChange(p.id, e.target.value)}
@@ -116,8 +126,10 @@ export default function ScoreForm({
                           handleSubmit(e as any);
                         }
                       }}
-                      className="w-full text-center bg-white border border-slate-200 rounded-lg py-2.5 text-lg font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500/50 transition-all shadow-sm"
+                      className="w-full text-center bg-white border border-slate-200 rounded-lg py-2.5 text-lg font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-sky-500/50 transition[...]
                       placeholder="0"
+                      autoComplete="off"
+                      spellCheck="false"
                     />
                   </div>
                 ))}
@@ -128,7 +140,7 @@ export default function ScoreForm({
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full bg-sky-500 hover:bg-sky-600 active:bg-sky-700 disabled:bg-slate-300 text-white font-bold py-4 px-6 rounded-xl shadow-md shadow-sky-500/20 flex items-center justify-center gap-2 transition-all"
+                className="w-full bg-sky-500 hover:bg-sky-600 active:bg-sky-700 disabled:bg-slate-300 text-white font-bold py-4 px-6 rounded-xl shadow-md shadow-sky-500/20 flex items-center justify-ce[...]
               >
                 {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Plus className="w-6 h-6" />}
                 <span>Lưu điểm</span>
