@@ -105,7 +105,7 @@ export default function ScoreForm({
                       {p.name}
                     </label>
                     <input
-                      type="number"
+                      type="text"
                       inputMode="numeric"
                       enterKeyHint="done"
                       value={scores[p.id] || ""}
