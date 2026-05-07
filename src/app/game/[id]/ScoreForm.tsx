@@ -24,10 +24,10 @@ export default function ScoreForm({
   const [error, setError] = useState("");
 
   const openModal = () => {
-    // Khởi tạo mặc định điểm là 0 cho tất cả
+    // Khởi tạo mặc định điểm là blank cho tất cả (không phải "0")
     const defaultScores: Record<string, string> = {};
     players.forEach((p) => {
-      defaultScores[p.id] = "0";
+      defaultScores[p.id] = "";
     });
     setScores(defaultScores);
     setError("");
@@ -41,11 +41,15 @@ export default function ScoreForm({
     const parsedScores: Record<string, number> = {};
 
     for (const p of players) {
-      if (scores[p.id] === undefined || scores[p.id] === "") {
-        setError("Vui lòng nhập điểm cho tất cả người chơi (mặc định là 0)");
+      // Nếu blank thì default là 0
+      const scoreValue = scores[p.id] === "" ? "0" : scores[p.id];
+      
+      if (scoreValue === undefined) {
+        setError("Vui lòng nhập điểm cho tất cả người chơi");
         return;
       }
-      const val = parseInt(scores[p.id], 10);
+      
+      const val = parseInt(scoreValue, 10);
       if (isNaN(val)) {
         setError("Điểm phải là số");
         return;
