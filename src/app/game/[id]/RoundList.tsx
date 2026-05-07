@@ -105,7 +105,7 @@ export default function RoundList({
         {rounds.map((round, index) => (
           <div key={round.id} className={`relative overflow-hidden group ${index % 2 === 0 ? 'bg-white' : 'bg-slate-50/70'}`}>
             {/* Vùng Swipe to Edit/Delete (chỉ bật khi chưa kết thúc) */}
-            <div className={`flex w-full overflow-x-auto snap-x snap-mandatory hide-scrollbar ${isFinished ? '' : 'touch-pan-y'}`}>
+            <div className={`flex w-full overflow-x-auto snap-x snap-mandatory hide-scrollbar overscroll-x-contain`}>
               
               {/* Nội dung chính của Round */}
               <div 

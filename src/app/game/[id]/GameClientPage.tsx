@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
-import { ChevronLeft, Settings, X, Check, Loader2 } from "lucide-react";
+import { ChevronLeft, Settings, X, Check, Loader2, TrendingUp, BarChart3 } from "lucide-react";
 import ScoreForm from "./ScoreForm";
 import EndGameButton from "./EndGameButton";
 import RoundList from "./RoundList";
 import GameAuthGate from "./GameAuthGate";
+import GameProgressionChart from "./GameProgressionChart";
 import { updatePlayerName } from "@/app/actions/game";
 
 interface Player {
@@ -19,6 +20,8 @@ interface Round {
   round_number: number;
   scores: Record<string, number>;
 }
+
+const AVATARS = ["👨‍🚀", "🧙‍♂️", "🧙‍♀️", "🕵️‍♂️", "🕵️‍♀️", "🧛‍♂️", "🧛‍♀️", "🧟‍♂️", "🧟‍♀️", "🧞‍♂️"];
 
 export default function GameClientPage({
   gameId,
@@ -38,9 +41,44 @@ export default function GameClientPage({
   nextRoundNumber: number;
 }) {
   const [showSettings, setShowSettings] = useState(false);
+  const [showChart, setShowChart] = useState(false);
   const [editNames, setEditNames] = useState<Record<string, string>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [settingsError, setSettingsError] = useState("");
+
+  // Tính toán chuỗi thắng (Streaks)
+  const streaks = useMemo(() => {
+    const currentStreaks: Record<string, number> = {};
+    players.forEach(p => currentStreaks[p.id] = 0);
+
+    // Sắp xếp ván theo thứ tự thời gian (từ ván 1 trở đi) để tính chuỗi
+    const sortedRounds = [...rounds].sort((a, b) => a.round_number - b.round_number);
+
+    sortedRounds.forEach(round => {
+      // Tìm người cao điểm nhất trong ván này
+      let maxScore = -Infinity;
+      let winnerId = "";
+      
+      players.forEach(p => {
+        const score = round.scores[p.id] || 0;
+        if (score > maxScore) {
+          maxScore = score;
+          winnerId = p.id;
+        }
+      });
+
+      // Nếu có người thắng (maxScore > 0 hoặc ít nhất là người cao nhất)
+      players.forEach(p => {
+        if (p.id === winnerId && maxScore > 0) {
+          currentStreaks[p.id]++;
+        } else {
+          currentStreaks[p.id] = 0;
+        }
+      });
+    });
+
+    return currentStreaks;
+  }, [rounds, players]);
 
   const openSettings = () => {
     const names: Record<string, string> = {};
@@ -54,7 +92,6 @@ export default function GameClientPage({
     e.preventDefault();
     setSettingsError("");
 
-    // Chỉ cập nhật những tên đã thay đổi
     const changes = players.filter((p) => editNames[p.id]?.trim() && editNames[p.id].trim() !== p.name);
     
     if (changes.length === 0) {
@@ -100,6 +137,12 @@ export default function GameClientPage({
               )}
             </div>
             <div className="flex items-center gap-2">
+              <button
+                onClick={() => setShowChart(!showChart)}
+                className={`p-2 rounded-full transition-colors ${showChart ? "bg-sky-50 text-sky-600" : "text-slate-400 hover:text-slate-700 hover:bg-slate-100"}`}
+              >
+                <TrendingUp className="w-5 h-5" />
+              </button>
               {isHost && !isFinished && (
                 <button
                   onClick={openSettings}
@@ -119,18 +162,43 @@ export default function GameClientPage({
           </header>
 
           {/* Table Header ghim */}
-          <div className="bg-slate-100 border-b border-slate-200 grid grid-cols-5 py-3 shadow-sm z-10 shrink-0">
-            <div className="text-center font-semibold text-[10px] text-slate-500 uppercase col-span-1 border-r border-slate-200 flex flex-col items-center justify-center">
-              Ván
-            </div>
-            {players.map((p) => (
-              <div key={p.id} className="text-center font-bold text-xs text-slate-800 line-clamp-1 px-1">
-                {p.name}
-                <div className={`text-[10px] mt-1 ${totalScores[p.id] > 0 ? "text-emerald-600" : totalScores[p.id] < 0 ? "text-red-600" : "text-slate-500"}`}>
-                  {totalScores[p.id] > 0 ? "+" : ""}{totalScores[p.id]}
+          <div className="bg-white border-b border-slate-200 shadow-sm z-10 shrink-0">
+            {/* Biểu đồ Live (nếu bật) */}
+            {showChart && rounds.length > 0 && (
+              <div className="p-4 border-b border-slate-100 animate-in slide-in-from-top duration-300">
+                <div className="flex items-center gap-2 mb-2">
+                  <BarChart3 className="w-4 h-4 text-sky-500" />
+                  <span className="text-xs font-bold text-slate-700">Đồ thị diễn biến</span>
                 </div>
+                <GameProgressionChart players={players} rounds={rounds} />
               </div>
-            ))}
+            )}
+
+            <div className="grid grid-cols-5 py-3">
+              <div className="text-center font-semibold text-[10px] text-slate-500 uppercase col-span-1 border-r border-slate-200 flex flex-col items-center justify-center">
+                Ván
+              </div>
+              {players.map((p, i) => (
+                <div key={p.id} className="text-center px-1 border-r border-slate-50 last:border-0">
+                  <div className="flex flex-col items-center">
+                    <div className="relative">
+                      <span className="text-base mb-0.5">{AVATARS[i % AVATARS.length]}</span>
+                      {streaks[p.id] >= 2 && (
+                        <span className="absolute -top-1 -right-2 text-[10px] animate-bounce">
+                          🔥<span className="font-bold text-orange-600">{streaks[p.id]}</span>
+                        </span>
+                      )}
+                    </div>
+                    <span className="font-bold text-[11px] text-slate-800 line-clamp-1 w-full">
+                      {p.name}
+                    </span>
+                    <div className={`text-[10px] font-extrabold mt-0.5 ${totalScores[p.id] > 0 ? "text-emerald-600" : totalScores[p.id] < 0 ? "text-red-600" : "text-slate-400"}`}>
+                      {totalScores[p.id] > 0 ? "+" : ""}{totalScores[p.id]}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Scrollable content area */}
