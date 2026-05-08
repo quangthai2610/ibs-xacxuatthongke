@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft, Trophy, Receipt, Home } from "lucide-react";
 import UpdateBillButton from "./UpdateBillButton";
+import DebtItemWithQR from "@/components/DebtItemWithQR";
 
 
 export default async function ResultPage({ params }: { params: Promise<{ id: string }> }) {
@@ -60,11 +61,18 @@ export default async function ResultPage({ params }: { params: Promise<{ id: str
               <div className="flex flex-col gap-2">
                 {game.debts.map((debt: any) => {
                   const player = game.players.find((p: any) => p.id === debt.player_id);
+                  const otherDebt = game.debts.find((d: any) => d.id !== debt.id);
+                  const otherPlayer = otherDebt ? game.players.find((p: any) => p.id === otherDebt.player_id) : null;
+                  
                   return (
-                    <div key={debt.id} className="flex justify-between items-center bg-white/20 px-4 py-2 rounded-xl backdrop-blur-md">
-                      <span className="font-semibold">{player?.name} trả:</span>
-                      <span className="font-bold">{Number(debt.amount).toLocaleString("vi-VN")} đ</span>
-                    </div>
+                    <DebtItemWithQR 
+                      key={debt.id}
+                      debtId={debt.id}
+                      playerName={player?.name || "Người chơi"}
+                      otherPlayerName={otherPlayer?.name || "Người chơi"}
+                      amount={Number(debt.amount)}
+                      gameId={gameId}
+                    />
                   );
                 })}
               </div>

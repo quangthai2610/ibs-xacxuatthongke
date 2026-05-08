@@ -12,7 +12,9 @@ import {
   Check,
   Zap,
   Banknote,
+  Palette,
 } from "lucide-react";
+import { THEMES, THEME_KEYS, type ThemeKey, type BingoTheme } from "./themes";
 
 export default function BingoPage() {
   const [minRange, setMinRange] = useState(1);
@@ -32,6 +34,22 @@ export default function BingoPage() {
   const [tempPrize, setTempPrize] = useState("");
   const [countdown, setCountdown] = useState<number | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [themeKey, setThemeKey] = useState<ThemeKey>("light");
+  const [showThemePicker, setShowThemePicker] = useState(false);
+
+  // Load theme from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("bingo-theme") as ThemeKey | null;
+    if (saved && THEMES[saved]) setThemeKey(saved);
+  }, []);
+
+  const t: BingoTheme = THEMES[themeKey];
+
+  const handleThemeChange = (key: ThemeKey) => {
+    setThemeKey(key);
+    localStorage.setItem("bingo-theme", key);
+    setShowThemePicker(false);
+  };
 
   const rafRef = useRef<number | null>(null);
   const autoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -191,23 +209,23 @@ export default function BingoPage() {
 
   const getDrawnStyle = (n: number, isCurrent: boolean) => {
     if (isCurrent && !isTransitioning && !isSpinning) {
-      return "bg-gradient-to-br from-emerald-400 to-emerald-600 text-white scale-110 shadow-[0_0_20px_rgba(52,211,153,0.6)] ring-2 ring-emerald-300 z-10";
+      return "bg-gradient-to-br from-emerald-400 to-emerald-600 text-white scale-110 shadow-[0_0_20px_rgba(52,211,153,0.5)] ring-2 ring-emerald-300 z-10";
     }
     if (drawnNumbers.includes(n)) {
-      return "bg-red-500 text-white";
+      return "bg-red-500/90 text-white";
     }
     return "";
   };
 
   return (
-    <div className="fixed inset-0 z-40 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white flex flex-col">
+    <div className={`fixed inset-0 z-40 ${t.bg} flex flex-col transition-colors duration-500`}>
       {/* Header */}
-      <header className="px-4 py-3 lg:py-4 flex items-center justify-between z-20 bg-slate-950/80 backdrop-blur-sm border-b border-white/5 shrink-0">
+      <header className={`px-4 py-3 lg:py-4 flex items-center justify-between z-20 ${t.headerBg} shrink-0`}>
         <div className="flex items-center">
-          <Link href="/" className="p-2 -ml-2 text-slate-400 hover:text-white transition-colors">
+          <Link href="/" className={`p-2 -ml-2 ${t.backBtn} transition-colors`}>
             <ChevronLeft className="w-6 h-6" />
           </Link>
-          <h1 className="text-lg font-bold ml-1 bg-gradient-to-r from-amber-400 to-orange-400 bg-clip-text text-transparent">
+          <h1 className={`text-lg font-bold ml-1 bg-gradient-to-r ${t.titleGradient} bg-clip-text text-transparent`}>
             🎱 IBS-Bingo
           </h1>
         </div>
@@ -215,21 +233,47 @@ export default function BingoPage() {
           {/* Prize button */}
           <button
             onClick={() => { setTempPrize(prizeAmount); setShowPrizeInput(true); }}
-            className={`p-2 transition-colors flex items-center gap-1 rounded-lg text-xs font-semibold ${prizeAmount ? "text-amber-400 bg-amber-400/10" : "text-slate-400 hover:text-white"
-              }`}
+            className={`p-2 transition-colors flex items-center gap-1 rounded-lg text-xs font-semibold ${prizeAmount ? t.prizeActive : t.iconBtn}`}
           >
             <Banknote className="w-5 h-5" />
             {prizeAmount && (
               <span className="hidden sm:inline">{formatCurrency(prizeAmount)}đ</span>
             )}
           </button>
+          {/* Theme picker */}
+          <div className="relative">
+            <button
+              onClick={() => setShowThemePicker(!showThemePicker)}
+              className={`p-2 ${t.iconBtn} transition-colors`}
+            >
+              <Palette className="w-5 h-5" />
+            </button>
+            {showThemePicker && (
+              <div className={`absolute right-0 top-full mt-2 ${t.modalBg} rounded-xl border shadow-xl p-2 flex gap-1 z-50 min-w-max`}>
+                {THEME_KEYS.map((k) => (
+                  <button
+                    key={k}
+                    onClick={() => handleThemeChange(k)}
+                    className={`px-3 py-2 rounded-lg text-sm font-semibold transition-all flex items-center gap-1.5 ${
+                      themeKey === k
+                        ? "bg-amber-500 text-white shadow-md scale-105"
+                        : `${t.modalCancelBtn}`
+                    }`}
+                  >
+                    <span>{THEMES[k].icon}</span>
+                    <span className="hidden sm:inline">{THEMES[k].label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
           <button
             onClick={() => { setTempMin(String(minRange)); setTempMax(String(maxRange)); setTempInterval(String(interval)); setShowSettings(true); }}
-            className="p-2 text-slate-400 hover:text-white transition-colors"
+            className={`p-2 ${t.iconBtn} transition-colors`}
           >
             <Settings className="w-5 h-5" />
           </button>
-          <button onClick={handleReset} className="p-2 text-slate-400 hover:text-white transition-colors">
+          <button onClick={handleReset} className={`p-2 ${t.iconBtn} transition-colors`}>
             <RotateCcw className="w-5 h-5" />
           </button>
         </div>
@@ -242,9 +286,9 @@ export default function BingoPage() {
           <div className="flex flex-col items-center pt-6 lg:pt-10 pb-4 px-4">
             {/* Prize display */}
             {prizeAmount && (
-              <div className="mb-4 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20 rounded-full px-5 py-1.5 flex items-center gap-2">
-                <Banknote className="w-4 h-4 text-amber-400" />
-                <span className="text-amber-300 font-bold text-sm">
+              <div className={`mb-4 ${t.prizeBadgeBg} border ${t.prizeBadgeBorder} rounded-full px-5 py-1.5 flex items-center gap-2`}>
+                <Banknote className={`w-4 h-4 ${t.prizeBadgeIcon}`} />
+                <span className={`${t.prizeBadgeText} font-bold text-sm`}>
                   Giải thưởng: {formatCurrency(prizeAmount)}đ
                 </span>
               </div>
@@ -254,20 +298,20 @@ export default function BingoPage() {
             <div className="relative mb-5">
               <div
                 className={`w-32 h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 rounded-full flex items-center justify-center relative ${isSpinning
-                    ? "bg-gradient-to-br from-amber-400 via-orange-500 to-red-500 shadow-[0_0_80px_rgba(251,146,60,0.5)]"
+                    ? "bg-gradient-to-br from-amber-400 via-orange-500 to-red-500 shadow-[0_0_60px_rgba(251,146,60,0.4)]"
                     : isTransitioning
-                      ? "bg-gradient-to-br from-red-500 to-rose-600 shadow-[0_0_50px_rgba(239,68,68,0.4)]"
+                      ? "bg-gradient-to-br from-red-500 to-rose-600 shadow-[0_0_40px_rgba(239,68,68,0.3)]"
                       : currentNumber
-                        ? "bg-gradient-to-br from-emerald-400 to-teal-500 shadow-[0_0_50px_rgba(52,211,153,0.3)]"
-                        : "bg-gradient-to-br from-slate-700 to-slate-800 shadow-[0_0_30px_rgba(100,116,139,0.15)]"
+                        ? "bg-gradient-to-br from-emerald-400 to-teal-500 shadow-[0_0_40px_rgba(52,211,153,0.25)]"
+                        : t.orbIdle
                   } transition-all duration-500`}
               >
                 <div className="absolute top-3 left-5 w-10 h-6 lg:w-14 lg:h-8 bg-white/20 rounded-full blur-md" />
                 <div className="absolute top-5 left-8 w-3 h-2 lg:w-5 lg:h-3 bg-white/30 rounded-full blur-sm" />
                 <span
                   className={`font-black tabular-nums relative z-10 ${isSpinning ? "animate-pulse" : ""} ${(displayNumber ?? currentNumber ?? 0) >= 100 ? "text-4xl md:text-5xl lg:text-6xl" : "text-5xl md:text-7xl lg:text-8xl"
-                    }`}
-                  style={{ textShadow: "0 4px 16px rgba(0,0,0,0.4)" }}
+                    } ${currentNumber || isSpinning ? "text-white" : t.orbIdleText}`}
+                  style={{ textShadow: currentNumber || isSpinning ? "0 4px 16px rgba(0,0,0,0.3)" : "none" }}
                 >
                   {isSpinning ? displayNumber ?? "?" : currentNumber ?? "?"}
                 </span>
@@ -283,14 +327,14 @@ export default function BingoPage() {
             {/* Status */}
             <div className="text-center mb-3">
               {isAllDrawn ? (
-                <p className="text-emerald-400 font-bold text-lg">🎉 Đã quay hết!</p>
+                <p className={`${t.statusDone} font-bold text-lg`}>🎉 Đã quay hết!</p>
               ) : (
-                <p className="text-slate-500 text-sm">
-                  <span className="text-white font-bold">{drawnNumbers.length}</span>
-                  <span className="text-slate-600 mx-1">/</span>
-                  <span>{totalNumbers}</span>
+                <p className={`${t.statusText} text-sm`}>
+                  <span className={`${t.statusBold} font-bold`}>{drawnNumbers.length}</span>
+                  <span className={`${t.statusDivider} mx-1`}>/</span>
+                  <span className={t.statusTotal}>{totalNumbers}</span>
                   {isAutoMode && !isSpinning && countdown !== null && (
-                    <span className="text-amber-400 ml-2 font-bold text-base tabular-nums">{countdown}s</span>
+                    <span className={`${t.countdownText} ml-2 font-bold text-base tabular-nums`}>{countdown}s</span>
                   )}
                 </p>
               )}
@@ -304,8 +348,8 @@ export default function BingoPage() {
                     key={`h-${n}-${i}`}
                     className={`w-8 h-8 lg:w-9 lg:h-9 shrink-0 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-500 ${
                       i === 0 && !isTransitioning && !isSpinning
-                        ? "bg-gradient-to-br from-emerald-400 to-emerald-600 text-white scale-110 shadow-[0_0_16px_rgba(52,211,153,0.5)] ring-2 ring-emerald-300/50"
-                        : "bg-red-500 text-white"
+                        ? "bg-gradient-to-br from-emerald-400 to-emerald-600 text-white scale-110 shadow-[0_0_12px_rgba(52,211,153,0.4)] ring-2 ring-emerald-300/50"
+                        : "bg-red-500/90 text-white shadow-sm"
                     }`}
                   >
                     {n}
@@ -328,11 +372,11 @@ export default function BingoPage() {
                   const isCurrent = n === currentNumber;
                   const style = isDrawn || isCurrent
                     ? getDrawnStyle(n, isCurrent)
-                    : "bg-slate-800/60 text-slate-400 border border-slate-700/40";
+                    : t.cellMobile;
                   return (
                     <div
                       key={n}
-                      className={`aspect-square rounded-md flex items-center justify-center text-[11px] font-bold transition-all duration-500 ${style}`}
+                      className={`aspect-square rounded-lg flex items-center justify-center text-[11px] font-bold transition-all duration-500 ${style}`}
                     >
                       {n}
                     </div>
@@ -352,7 +396,7 @@ export default function BingoPage() {
                   const isCurrent = n === currentNumber;
                   const style = isDrawn || isCurrent
                     ? getDrawnStyle(n, isCurrent)
-                    : "bg-slate-800/50 text-slate-400 border border-slate-700/30 hover:bg-slate-700/50 hover:text-slate-300";
+                    : t.cellDesktop;
                   return (
                     <div
                       key={n}
@@ -369,12 +413,12 @@ export default function BingoPage() {
       </div>
 
       {/* ── Fixed Bottom Controls (Mobile only) ── */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-slate-950/95 backdrop-blur-md border-t border-white/5 p-3 pb-[calc(max(0.75rem,env(safe-area-inset-bottom)))] z-20">
+      <div className={`lg:hidden fixed bottom-0 left-0 right-0 ${t.bottomBar} p-3 pb-[calc(max(0.75rem,env(safe-area-inset-bottom)))] z-20`}>
         <div className="flex gap-2">
           <button
             onClick={handleManualSpin}
             disabled={isSpinning || isAllDrawn}
-            className="flex-1 py-3.5 px-4 rounded-xl font-bold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 disabled:from-slate-700 disabled:to-slate-800 disabled:text-slate-500 transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 active:scale-95"
+            className={`flex-1 py-3.5 px-4 rounded-xl font-bold text-white bg-gradient-to-r ${t.spinBtn} transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95`}
           >
             <Play className="w-5 h-5" />
             <span>Quay số</span>
@@ -384,8 +428,8 @@ export default function BingoPage() {
             disabled={isAllDrawn}
             className={`py-3.5 px-4 rounded-xl font-bold transition-all flex items-center justify-center gap-2 active:scale-95 ${isAutoMode
                 ? "bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/20"
-                : "bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700"
-              } disabled:bg-slate-800 disabled:text-slate-600 disabled:border-slate-700`}
+                : t.autoBtn
+              } ${t.autoBtnDisabled}`}
           >
             {isAutoMode ? <><Pause className="w-5 h-5" /><span>Dừng</span></> : <><Zap className="w-5 h-5" /><span>Auto</span></>}
           </button>
@@ -393,11 +437,11 @@ export default function BingoPage() {
       </div>
 
       {/* ── Desktop Controls (inline, below header) ── */}
-      <div className="hidden lg:flex fixed bottom-6 left-1/2 -translate-x-1/2 z-20 bg-slate-900/90 backdrop-blur-lg border border-white/10 rounded-2xl p-3 gap-3 shadow-2xl">
+      <div className={`hidden lg:flex fixed bottom-6 left-1/2 -translate-x-1/2 z-20 ${t.desktopBar} rounded-2xl p-3 gap-3`}>
         <button
           onClick={handleManualSpin}
           disabled={isSpinning || isAllDrawn}
-          className="py-3 px-8 rounded-xl font-bold text-white bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 disabled:from-slate-700 disabled:to-slate-800 disabled:text-slate-500 transition-all flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 active:scale-95"
+          className={`py-3 px-8 rounded-xl font-bold text-white bg-gradient-to-r ${t.desktopSpinBtn} transition-all flex items-center justify-center gap-2 shadow-lg active:scale-95`}
         >
           <Play className="w-5 h-5" />
           <span>Quay số</span>
@@ -407,8 +451,8 @@ export default function BingoPage() {
           disabled={isAllDrawn}
           className={`py-3 px-6 rounded-xl font-bold transition-all flex items-center justify-center gap-2 active:scale-95 ${isAutoMode
               ? "bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/20"
-              : "bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700"
-            } disabled:bg-slate-800 disabled:text-slate-600 disabled:border-slate-700`}
+              : t.desktopAutoBtn
+            } ${t.autoBtnDisabled}`}
         >
           {isAutoMode ? <><Pause className="w-5 h-5" /><span>Dừng</span></> : <><Zap className="w-5 h-5" /><span>Tự động</span></>}
         </button>
@@ -416,42 +460,42 @@ export default function BingoPage() {
 
       {/* ── Settings Modal ── */}
       {showSettings && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-slate-800 rounded-2xl p-6 w-full max-w-sm shadow-2xl border border-slate-700">
+        <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${t.modalOverlay}`}>
+          <div className={`${t.modalBg} rounded-2xl p-6 w-full max-w-sm shadow-2xl border`}>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-bold text-white">Cài đặt Bingo</h2>
-              <button onClick={() => setShowSettings(false)} className="p-1 text-slate-400 hover:text-white">
+              <h2 className={`text-xl font-bold ${t.modalTitle}`}>Cài đặt Bingo</h2>
+              <button onClick={() => setShowSettings(false)} className={`p-1 ${t.modalClose}`}>
                 <X className="w-5 h-5" />
               </button>
             </div>
             <div className="space-y-5">
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">Phạm vi số</label>
+                <label className={`block text-xs font-semibold ${t.modalLabel} mb-2 uppercase tracking-wider`}>Phạm vi số</label>
                 <div className="flex items-center gap-3">
                   <div className="flex-1">
                     <input type="number" inputMode="numeric" value={tempMin} onChange={(e) => setTempMin(e.target.value)}
-                      className="w-full bg-slate-700 border border-slate-600 rounded-xl px-4 py-3 text-center text-lg font-bold text-white focus:outline-none focus:ring-2 focus:ring-amber-500/50" placeholder="Từ" />
-                    <span className="block text-[10px] text-slate-500 text-center mt-1">Từ</span>
+                      className={`w-full ${t.modalInput} border rounded-xl px-4 py-3 text-center text-lg font-bold focus:outline-none focus:ring-2`} placeholder="Từ" />
+                    <span className={`block text-[10px] ${t.modalSubText} text-center mt-1`}>Từ</span>
                   </div>
-                  <span className="text-slate-500 font-bold text-lg">→</span>
+                  <span className={`${t.modalArrow} font-bold text-lg`}>→</span>
                   <div className="flex-1">
                     <input type="number" inputMode="numeric" value={tempMax} onChange={(e) => setTempMax(e.target.value)}
-                      className="w-full bg-slate-700 border border-slate-600 rounded-xl px-4 py-3 text-center text-lg font-bold text-white focus:outline-none focus:ring-2 focus:ring-amber-500/50" placeholder="Đến" />
-                    <span className="block text-[10px] text-slate-500 text-center mt-1">Đến</span>
+                      className={`w-full ${t.modalInput} border rounded-xl px-4 py-3 text-center text-lg font-bold focus:outline-none focus:ring-2`} placeholder="Đến" />
+                    <span className={`block text-[10px] ${t.modalSubText} text-center mt-1`}>Đến</span>
                   </div>
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-400 mb-2 uppercase tracking-wider">Thời gian giữa mỗi lần quay (giây)</label>
+                <label className={`block text-xs font-semibold ${t.modalLabel} mb-2 uppercase tracking-wider`}>Thời gian giữa mỗi lần quay (giây)</label>
                 <input type="number" inputMode="decimal" value={tempInterval} onChange={(e) => setTempInterval(e.target.value)} min="0" step="0.5"
-                  className="w-full bg-slate-700 border border-slate-600 rounded-xl px-4 py-3 text-center text-lg font-bold text-white focus:outline-none focus:ring-2 focus:ring-amber-500/50" />
+                  className={`w-full ${t.modalInput} border rounded-xl px-4 py-3 text-center text-lg font-bold focus:outline-none focus:ring-2`} />
               </div>
             </div>
             <div className="flex gap-3 mt-8">
-              <button onClick={() => setShowSettings(false)} className="flex-1 py-3 px-4 rounded-xl font-semibold text-slate-300 bg-slate-700 hover:bg-slate-600 transition-colors flex items-center justify-center gap-2">
+              <button onClick={() => setShowSettings(false)} className={`flex-1 py-3 px-4 rounded-xl font-semibold ${t.modalCancelBtn} transition-colors flex items-center justify-center gap-2`}>
                 <X className="w-5 h-5" /><span>Hủy</span>
               </button>
-              <button onClick={handleSaveSettings} className="flex-1 py-3 px-4 rounded-xl font-semibold text-white bg-amber-500 hover:bg-amber-600 transition-colors flex items-center justify-center gap-2 shadow-md">
+              <button onClick={handleSaveSettings} className={`flex-1 py-3 px-4 rounded-xl font-semibold ${t.modalSaveBtn} transition-colors flex items-center justify-center gap-2`}>
                 <Check className="w-5 h-5" /><span>Lưu</span>
               </button>
             </div>
@@ -461,17 +505,17 @@ export default function BingoPage() {
 
       {/* ── Prize Input Modal ── */}
       {showPrizeInput && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-slate-800 rounded-2xl p-6 w-full max-w-sm shadow-2xl border border-slate-700">
+        <div className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${t.modalOverlay}`}>
+          <div className={`${t.modalBg} rounded-2xl p-6 w-full max-w-sm shadow-2xl border`}>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <Banknote className="w-6 h-6 text-amber-400" /> Giải thưởng
+              <h2 className={`text-xl font-bold ${t.modalTitle} flex items-center gap-2`}>
+                <Banknote className="w-6 h-6 text-amber-500" /> Giải thưởng
               </h2>
-              <button onClick={() => setShowPrizeInput(false)} className="p-1 text-slate-400 hover:text-white">
+              <button onClick={() => setShowPrizeInput(false)} className={`p-1 ${t.modalClose}`}>
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <p className="text-sm text-slate-400 mb-4">Nhập số tiền giải thưởng để hiển thị trên màn hình.</p>
+            <p className={`text-sm ${t.modalLabel} mb-4`}>Nhập số tiền giải thưởng để hiển thị trên màn hình.</p>
             <div className="relative mb-6">
               <input
                 type="text"
@@ -480,18 +524,18 @@ export default function BingoPage() {
                 onChange={(e) => setTempPrize(e.target.value)}
                 onKeyDown={(e) => { if (e.key === "Enter") handleSavePrize(); }}
                 placeholder="Ví dụ: 500,000"
-                className="w-full bg-slate-700 border border-slate-600 rounded-xl px-4 py-3 text-lg font-bold text-white focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500 pr-10"
+                className={`w-full ${t.modalInput} border rounded-xl px-4 py-3 text-lg font-bold focus:outline-none focus:ring-2 pr-10`}
                 autoFocus
               />
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-semibold">đ</span>
+              <span className={`absolute right-4 top-1/2 -translate-y-1/2 ${t.modalSuffix} font-semibold`}>đ</span>
             </div>
             <div className="flex gap-3">
               <button onClick={() => { setPrizeAmount(""); setShowPrizeInput(false); }}
-                className="flex-1 py-3 px-4 rounded-xl font-semibold text-slate-300 bg-slate-700 hover:bg-slate-600 transition-colors flex items-center justify-center gap-2">
+                className={`flex-1 py-3 px-4 rounded-xl font-semibold ${t.modalCancelBtn} transition-colors flex items-center justify-center gap-2`}>
                 <X className="w-5 h-5" /><span>Xóa</span>
               </button>
               <button onClick={handleSavePrize}
-                className="flex-1 py-3 px-4 rounded-xl font-semibold text-white bg-amber-500 hover:bg-amber-600 transition-colors flex items-center justify-center gap-2 shadow-md">
+                className={`flex-1 py-3 px-4 rounded-xl font-semibold ${t.modalSaveBtn} transition-colors flex items-center justify-center gap-2`}>
                 <Check className="w-5 h-5" /><span>Lưu</span>
               </button>
             </div>
