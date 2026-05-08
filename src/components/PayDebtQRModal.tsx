@@ -36,7 +36,7 @@ export default function PayDebtQRModal({ amount, receiverName, senderName, accou
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `QR_${playerName}_${amount}.png`;
+      a.download = `QR_${senderName}_${amount}.png`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
