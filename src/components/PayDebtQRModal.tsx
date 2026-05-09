@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { X, QrCode, Copy, Check, Download, ExternalLink, ZoomIn, BookmarkPlus, Loader2 } from "lucide-react";
+import { createPortal } from "react-dom";
+import { X, QrCode, Copy, Check, Download, ZoomIn, BookmarkPlus, Loader2 } from "lucide-react";
 import type { SavedBankAccount } from "@/hooks/useBankAccounts";
 import { addIOU } from "@/app/actions/iou";
 
@@ -14,13 +15,7 @@ interface PayDebtQRModalProps {
   onClose: () => void;
 }
 
-// TPBank deeplink — mở app TPBank trực tiếp với giao diện chuyển khoản
-// Format: tpbank://transfer?accountNo=XXX&amount=YYY&bankBin=ZZZ
-// Fallback: mở trang web TPBank nếu app chưa cài
-function buildTPBankDeeplink(accountNo: string, amount: number, bankBin: string, memo: string) {
-  // TPBank universal link qua VietQR
-  return `https://dl.vietqr.io/pay?app=tpb&ba=${bankBin}-${accountNo}&am=${amount}&tn=${encodeURIComponent(memo)}`;
-}
+
 
 export default function PayDebtQRModal({ amount, receiverName, senderName, account, gameId, onClose }: PayDebtQRModalProps) {
   const [copied, setCopied] = useState(false);
@@ -35,10 +30,7 @@ export default function PayDebtQRModal({ amount, receiverName, senderName, accou
     ? `https://img.vietqr.io/image/${account.bin}-${account.accountNo}-compact2.png?amount=${amount}&accountName=${encodeURIComponent(account.accountName)}&addInfo=${encodeURIComponent(addInfo)}`
     : "";
 
-  // TPBank deeplink — luôn mở app TPBank (người gửi dùng TPBank)
-  const transferDeeplink = account
-    ? buildTPBankDeeplink(account.accountNo, amount, account.bin, addInfo)
-    : "";
+
 
   const handleCopy = () => {
     if (account) {
@@ -86,11 +78,7 @@ export default function PayDebtQRModal({ amount, receiverName, senderName, accou
     }
   };
 
-  const handleTransfer = () => {
-    if (transferDeeplink) {
-      window.location.href = transferDeeplink;
-    }
-  };
+
 
   const handleSaveIOU = async () => {
     setIouLoading(true);
@@ -106,7 +94,7 @@ export default function PayDebtQRModal({ amount, receiverName, senderName, accou
     }
   };
 
-  return (
+  return createPortal(
     <>
       {/* Main Modal */}
       <div className="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
@@ -154,13 +142,6 @@ export default function PayDebtQRModal({ amount, receiverName, senderName, accou
 
                 {/* Action buttons */}
                 <div className="flex flex-col gap-2 w-full">
-                  {/* Transfer button — opens TPBank app */}
-                  <button 
-                    onClick={handleTransfer}
-                    className="w-full py-3.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-purple-500/25 active:scale-[0.98]"
-                  >
-                    <ExternalLink className="w-5 h-5" /> Mở TPBank chuyển tiền
-                  </button>
 
                   <div className="flex gap-2">
                     <button 
@@ -246,6 +227,7 @@ export default function PayDebtQRModal({ amount, receiverName, senderName, accou
           </div>
         </div>
       )}
-    </>
+    </>,
+    document.body
   );
 }
