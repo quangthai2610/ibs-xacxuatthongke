@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, History, Trophy } from "lucide-react";
+import { Home, History, Trophy, QrCode } from "lucide-react";
 import { clsx } from "clsx";
 
 export function BottomNav() {
@@ -12,6 +12,7 @@ export function BottomNav() {
     { name: "Sảnh", href: "/", icon: Home },
     { name: "Lịch sử", href: "/history", icon: History },
     { name: "Xếp hạng", href: "/leaderboard", icon: Trophy },
+    { name: "QR", href: "/qr", icon: QrCode },
   ];
 
   // Nếu đang ở màn hình ghi điểm (ví dụ: /game/123), có thể ẩn Bottom Nav hoặc giữ nguyên tuỳ thiết kế.
