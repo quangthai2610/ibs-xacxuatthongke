@@ -1,8 +1,9 @@
 import { getLeaderboard, getRankStats } from "@/app/actions/game";
 import Link from "next/link";
-import { Trophy, TrendingUp, Medal } from "lucide-react";
+import { Trophy, TrendingUp, Medal, HandCoins } from "lucide-react";
 import clsx from "clsx";
 import LeaderboardChart from "./LeaderboardChart";
+import DebtMatrixTable from "./DebtMatrixTable";
 
 
 export default async function LeaderboardPage({
@@ -12,7 +13,7 @@ export default async function LeaderboardPage({
 }) {
   const resolvedSearchParams = await searchParams;
   const filter = (resolvedSearchParams.filter as "all" | "week" | "month") || "all";
-  const type = (resolvedSearchParams.type as "debt" | "rank") || "debt";
+  const type = (resolvedSearchParams.type as "debt" | "rank" | "iou") || "debt";
 
   const leaderboardData = await getLeaderboard(filter);
   const rankStatsData = await getRankStats(filter);
@@ -36,45 +37,59 @@ export default async function LeaderboardPage({
           <Link
             href={`/leaderboard?type=debt&filter=${filter}`}
             className={clsx(
-              "flex-1 flex justify-center items-center gap-1 py-2 text-sm font-medium rounded-lg transition-all",
+              "flex-1 flex justify-center items-center gap-1 py-2 text-xs font-medium rounded-lg transition-all",
               type === "debt" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
             )}
           >
-            <TrendingUp className="w-4 h-4" /> Top bạc thủ tốn tiền
+            <TrendingUp className="w-3.5 h-3.5" /> Tốn tiền
           </Link>
           <Link
             href={`/leaderboard?type=rank&filter=${filter}`}
             className={clsx(
-              "flex-1 flex justify-center items-center gap-1 py-2 text-sm font-medium rounded-lg transition-all",
+              "flex-1 flex justify-center items-center gap-1 py-2 text-xs font-medium rounded-lg transition-all",
               type === "rank" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
             )}
           >
-            <Medal className="w-4 h-4" /> Bàn thắng
+            <Medal className="w-3.5 h-3.5" /> Bàn thắng
+          </Link>
+          <Link
+            href={`/leaderboard?type=iou&filter=${filter}`}
+            className={clsx(
+              "flex-1 flex justify-center items-center gap-1 py-2 text-xs font-medium rounded-lg transition-all",
+              type === "iou" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+            )}
+          >
+            <HandCoins className="w-3.5 h-3.5" /> Nợ
           </Link>
         </div>
 
-        {/* Filter Tabs */}
-        <div className="flex gap-2">
-          {filters.map((f) => {
-            const isActive = filter === f.id;
-            return (
-              <Link
-                key={f.id}
-                href={`/leaderboard?type=${type}&filter=${f.id}`}
-                className={clsx(
-                  "px-3 py-1 text-xs font-semibold rounded-full border transition-all",
-                  isActive ? "bg-slate-800 text-white border-slate-800" : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
-                )}
-              >
-                {f.label}
-              </Link>
-            );
-          })}
-        </div>
+        {/* Filter Tabs — ẩn khi tab Nợ */}
+        {type !== "iou" && (
+          <div className="flex gap-2">
+            {filters.map((f) => {
+              const isActive = filter === f.id;
+              return (
+                <Link
+                  key={f.id}
+                  href={`/leaderboard?type=${type}&filter=${f.id}`}
+                  className={clsx(
+                    "px-3 py-1 text-xs font-semibold rounded-full border transition-all",
+                    isActive ? "bg-slate-800 text-white border-slate-800" : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
+                  )}
+                >
+                  {f.label}
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </header>
 
       <main className="flex-1 p-6 overflow-y-auto pb-24 min-h-0">
-        {type === "debt" ? (
+        {type === "iou" ? (
+          /* Tab Nợ — Ma trận nợ */
+          <DebtMatrixTable />
+        ) : type === "debt" ? (
           leaderboardData.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-40 text-slate-400">
               <Trophy className="w-10 h-10 mb-2 opacity-30" />

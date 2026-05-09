@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { QrCode } from "lucide-react";
 import PayDebtQRModal from "./PayDebtQRModal";
-
 import { useBankAccounts } from "@/hooks/useBankAccounts";
 
 interface DebtItemWithQRProps {
@@ -47,6 +46,7 @@ export default function DebtItemWithQR({ debtId, playerName, otherPlayerName, am
           receiverName={playerName}
           senderName={otherPlayerName}
           account={matchedAccount}
+          gameId={gameId}
           onClose={() => setShowQR(false)} 
         />
       )}
