@@ -86,7 +86,7 @@ export default function FoodOrderModal({
               value={userName}
               onChange={(e) => setUserName(e.target.value)}
               placeholder="Chọn hoặc nhập tên mới..."
-              className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 bg-slate-50 focus:bg-white focus:border-sky-500 focus:outline-none transition-colors"
+              className="w-full text-slate-900 border-2 border-slate-200 rounded-xl px-4 py-3 bg-slate-50 focus:bg-white focus:border-sky-500 focus:outline-none transition-colors"
               required
             />
             <datalist id="player-names">
@@ -105,7 +105,7 @@ export default function FoodOrderModal({
               value={foodName}
               onChange={(e) => setFoodName(e.target.value)}
               placeholder="Ví dụ: Cơm gà xối mỡ..."
-              className="w-full border-2 border-slate-200 rounded-xl px-4 py-3 bg-slate-50 focus:bg-white focus:border-sky-500 focus:outline-none transition-colors"
+              className="w-full text-slate-900 border-2 border-slate-200 rounded-xl px-4 py-3 bg-slate-50 focus:bg-white focus:border-sky-500 focus:outline-none transition-colors"
               required
             />
           </div>
